@@ -1,0 +1,250 @@
+// App de prácticas FP - esquema para dbdiagram.io
+// Pega este contenido en https://dbdiagram.io/d (editor DBML)
+
+Project practicas_fp {
+  database_type: 'MySQL'
+  Note: 'Plataforma que conecta alumnos de FP con empresas para realizar prácticas'
+}
+
+// ---------------------------------------------------------------
+// ENUMS
+// ---------------------------------------------------------------
+
+Enum user_role {
+  student
+  company
+  admin
+}
+
+Enum cycle_level {
+  basico
+  medio
+  superior
+}
+
+Enum modality {
+  presencial
+  remoto
+  hibrido
+}
+
+Enum internship_status {
+  draft  [note: 'Borrador, no visible']
+  open   [note: 'Abierta a inscripciones']
+  closed [note: 'Cerrada']
+}
+
+Enum application_status {
+  pending   [note: 'Inscrito, sin revisar']
+  reviewing [note: 'La empresa está revisando el perfil']
+  interview [note: 'Pendiente de entrevista']
+  selected  [note: 'Seleccionado']
+  rejected  [note: 'No seleccionado']
+  withdrawn [note: 'Retirada por el alumno']
+}
+
+// ---------------------------------------------------------------
+// USUARIOS Y PERFILES
+// ---------------------------------------------------------------
+
+Table users {
+  id bigint [pk, increment]
+  name varchar(255) [not null]
+  email varchar(255) [not null, unique]
+  password varchar(255) [not null]
+  role user_role [not null, note: 'Define si es alumno, empresa o admin']
+  email_verified_at timestamp [null]
+  remember_token varchar(100) [null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table students {
+  id bigint [pk, increment]
+  user_id bigint [not null, unique]
+  first_name varchar(100) [not null]
+  last_name varchar(150) [not null]
+  phone varchar(20) [null]
+  birth_date date [null]
+  city varchar(100) [null]
+  bio text [null]
+  cv_path varchar(255) [null, note: 'Ruta del CV en PDF']
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table companies {
+  id bigint [pk, increment]
+  user_id bigint [not null, unique]
+  name varchar(150) [not null]
+  cif varchar(15) [not null, unique]
+  sector varchar(100) [null]
+  description text [null]
+  website varchar(255) [null]
+  phone varchar(20) [null]
+  city varchar(100) [null]
+  address varchar(255) [null]
+  logo_path varchar(255) [null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+// ---------------------------------------------------------------
+// CATÁLOGOS
+// ---------------------------------------------------------------
+
+Table professional_families {
+  id bigint [pk, increment]
+  name varchar(150) [not null, unique, note: 'Informática, Sanidad, Administración...']
+}
+
+Table cycles {
+  id bigint [pk, increment]
+  professional_family_id bigint [not null]
+  name varchar(150) [not null, note: 'DAW, DAM, ASIR...']
+  level cycle_level [not null]
+}
+
+Table skills {
+  id bigint [pk, increment]
+  name varchar(100) [not null, unique]
+}
+
+// ---------------------------------------------------------------
+// DATOS DEL ALUMNO
+// ---------------------------------------------------------------
+
+Table student_educations {
+  id bigint [pk, increment]
+  student_id bigint [not null]
+  cycle_id bigint [not null]
+  center_name varchar(150) [not null]
+  start_year int [not null]
+  end_year int [null]
+  is_current boolean [not null, default: false]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table experiences {
+  id bigint [pk, increment]
+  student_id bigint [not null]
+  company_name varchar(150) [not null]
+  position varchar(150) [not null]
+  description text [null]
+  start_date date [not null]
+  end_date date [null]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table skill_student {
+  student_id bigint [not null]
+  skill_id bigint [not null]
+
+  indexes {
+    (student_id, skill_id) [pk]
+  }
+}
+
+// ---------------------------------------------------------------
+// PRÁCTICAS Y CANDIDATURAS
+// ---------------------------------------------------------------
+
+Table internships {
+  id bigint [pk, increment]
+  company_id bigint [not null]
+  professional_family_id bigint [not null]
+  title varchar(150) [not null]
+  description text [not null]
+  requirements text [null]
+  location varchar(150) [null]
+  modality modality [not null, default: 'presencial']
+  positions int [not null, default: 1, note: 'Plazas disponibles']
+  total_hours int [null]
+  is_paid boolean [not null, default: false]
+  start_date date [null]
+  end_date date [null]
+  deadline date [null, note: 'Fecha límite de inscripción']
+  status internship_status [not null, default: 'draft']
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table internship_skill {
+  internship_id bigint [not null]
+  skill_id bigint [not null]
+
+  indexes {
+    (internship_id, skill_id) [pk]
+  }
+}
+
+Table applications {
+  id bigint [pk, increment]
+  internship_id bigint [not null]
+  student_id bigint [not null]
+  status application_status [not null, default: 'pending']
+  cover_letter text [null]
+  company_notes text [null, note: 'Notas privadas de la empresa']
+  applied_at timestamp [not null, default: `now()`]
+  created_at timestamp
+  updated_at timestamp
+
+  indexes {
+    (internship_id, student_id) [unique, note: 'Un alumno solo puede inscribirse una vez por práctica']
+  }
+}
+
+// ---------------------------------------------------------------
+// RELACIONES
+// ---------------------------------------------------------------
+
+Ref: students.user_id - users.id [delete: cascade]
+Ref: companies.user_id - users.id [delete: cascade]
+
+Ref: cycles.professional_family_id > professional_families.id [delete: restrict]
+
+Ref: student_educations.student_id > students.id [delete: cascade]
+Ref: student_educations.cycle_id > cycles.id [delete: restrict]
+Ref: experiences.student_id > students.id [delete: cascade]
+
+Ref: skill_student.student_id > students.id [delete: cascade]
+Ref: skill_student.skill_id > skills.id [delete: cascade]
+
+Ref: internships.company_id > companies.id [delete: cascade]
+Ref: internships.professional_family_id > professional_families.id [delete: restrict]
+
+Ref: internship_skill.internship_id > internships.id [delete: cascade]
+Ref: internship_skill.skill_id > skills.id [delete: cascade]
+
+Ref: applications.internship_id > internships.id [delete: cascade]
+Ref: applications.student_id > students.id [delete: cascade]
+
+// ---------------------------------------------------------------
+// GRUPOS (para ordenar el diagrama visualmente)
+// ---------------------------------------------------------------
+
+TableGroup usuarios {
+  users
+  students
+  companies
+}
+
+TableGroup catalogos {
+  professional_families
+  cycles
+  skills
+}
+
+TableGroup perfil_alumno {
+  student_educations
+  experiences
+  skill_student
+}
+
+TableGroup practicas {
+  internships
+  internship_skill
+  applications
+}
