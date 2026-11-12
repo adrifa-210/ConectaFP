@@ -1,0 +1,91 @@
+# ==========================================
+# Laravel & Environment
+# ==========================================
+.env
+.env.backup
+.env.production
+.env.local
+.env.*.local
+!.env.example
+
+# Composer & Vendor
+/vendor/
+/composer.phar
+/auth.json
+
+# Storage & Encryption Keys
+/storage/*.key
+/storage/pail
+
+# ==========================================
+# Frontend & Build Assets
+# ==========================================
+/node_modules/
+/public/build/
+/public/hot
+/public/storage
+/public/fonts-manifest.dev.json
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ==========================================
+# Databases
+# ==========================================
+*.sqlite
+*.sqlite-journal
+*.sqlite-shm
+*.sqlite-wal
+
+# ==========================================
+# Testing & Code Coverage
+# ==========================================
+/.phpunit.cache/
+.phpunit.result.cache
+/.pest/
+/coverage/
+*.coverage
+
+# ==========================================
+# IDEs & Text Editors
+# ==========================================
+/.fleet/
+/.idea/
+/.vscode/
+/.cursor/
+/.nova/
+/.zed/
+/.codex/
+.phpactor.json
+_ide_helper.php
+_ide_helper_models.php
+.phpstorm.meta.php
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+.history/
+
+# ==========================================
+# Homestead & Virtualization
+# ==========================================
+Homestead.json
+Homestead.yaml
+.vagrant/
+
+# ==========================================
+# Operating System Files
+# ==========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+[Dd]esktop.ini
